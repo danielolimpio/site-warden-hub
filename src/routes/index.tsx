@@ -26,7 +26,10 @@ function Dashboard() {
   const { authed, ready, login, logout } = useAuth();
   if (!ready) return null;
   if (!authed) return <LoginScreen onLogin={login} />;
+  return <DashboardInner logout={logout} />;
+}
 
+function DashboardInner({ logout }: { logout: () => void }) {
   const [sites, setSites] = useLocalStorage<SiteRecord[]>("sites.v1", SEED_SITES);
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
