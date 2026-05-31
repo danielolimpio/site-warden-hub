@@ -104,16 +104,6 @@ function Dashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-8">
-        <Tabs defaultValue="sites">
-          <TabsList className="mb-6">
-            <TabsTrigger value="sites" className="gap-1.5">
-              <LayoutDashboard className="h-4 w-4" />Sites
-            </TabsTrigger>
-            <TabsTrigger value="prompts" className="gap-1.5">
-              <Code2 className="h-4 w-4" />Prompts
-            </TabsTrigger>
-          </TabsList>
-
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <Stat label="Total de sites" value={stats.total} />
               <Stat label="SEO 100%" value={stats.seoDone} accent />
