@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Copy, Plus, Trash2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,10 +16,18 @@ type Store = Record<PromptCategory, Block[]>;
 
 const initialStore: Store = { PWA: [], FTP_HOST: [], ARTIGO: [], SCROLL: [] };
 
-export function PromptManager({ siteId, siteDomain }: { siteId: string; siteDomain: string }) {
-  const [siteStore, setSiteStore] = useLocalStorage<Store>(`prompts.v2.${siteId}`, initialStore);
+export function PromptManager({ siteId, siteDomain }: { siteId?: string | null; siteDomain?: string | null }) {
+  const [siteStore, setSiteStore] = useLocalStorage<Store>(
+    `prompts.v2.${siteId ?? "__none__"}`,
+    initialStore,
+  );
   const [globalStore, setGlobalStore] = useLocalStorage<Store>(`prompts.v2.__global__`, initialStore);
   const [active, setActive] = useState<PromptCategory>("PWA");
+
+  // If no site is selected, force a global category active
+  useEffect(() => {
+    if (!siteId && !isGlobal(active)) setActive("PWA");
+  }, [siteId, active]);
 
   const activeIsGlobal = isGlobal(active);
   const store = activeIsGlobal ? globalStore : siteStore;
@@ -27,9 +35,10 @@ export function PromptManager({ siteId, siteDomain }: { siteId: string; siteDoma
   const blocks = store[active] ?? [];
 
   const countOf = (c: PromptCategory) =>
-    (isGlobal(c) ? globalStore[c]?.length : siteStore[c]?.length) ?? 0;
+    (isGlobal(c) ? globalStore[c]?.length : siteId ? siteStore[c]?.length : 0) ?? 0;
 
   const addBlock = () => {
+    if (!activeIsGlobal && !siteId) return;
     const nb: Block = { id: crypto.randomUUID(), title: "Novo bloco", code: "" };
     setStore({ ...store, [active]: [nb, ...blocks] });
   };
@@ -49,9 +58,18 @@ export function PromptManager({ siteId, siteDomain }: { siteId: string; siteDoma
         {GLOBAL_CATS.map((c) => (
           <CategoryButton key={c} cat={c} active={active === c} count={countOf(c)} global onClick={() => setActive(c)} />
         ))}
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 px-2 pt-3">Exclusivos deste site</p>
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 px-2 pt-3">
+          Exclusivos {siteDomain ? `de ${siteDomain}` : "(selecione um site)"}
+        </p>
         {CATS.filter((c) => !isGlobal(c)).map((c) => (
-          <CategoryButton key={c} cat={c} active={active === c} count={countOf(c)} onClick={() => setActive(c)} />
+          <CategoryButton
+            key={c}
+            cat={c}
+            active={active === c}
+            count={countOf(c)}
+            disabled={!siteId}
+            onClick={() => siteId && setActive(c)}
+          />
         ))}
       </nav>
 
@@ -65,10 +83,21 @@ export function PromptManager({ siteId, siteDomain }: { siteId: string; siteDoma
               </span>
             </h2>
             <p className="text-[11px] text-muted-foreground truncate">
-              {activeIsGlobal ? "Snippets compartilhados entre todos os sites" : `Snippets exclusivos de ${siteDomain}`}
+              {activeIsGlobal
+                ? "Snippets compartilhados entre todos os sites"
+                : siteDomain
+                  ? `Snippets exclusivos de ${siteDomain}`
+                  : "Selecione um site para ver os snippets exclusivos"}
             </p>
           </div>
-          <Button onClick={addBlock} size="sm" className="shrink-0 h-8 px-2"><Plus className="h-4 w-4 mr-1" />Novo</Button>
+          <Button
+            onClick={addBlock}
+            size="sm"
+            className="shrink-0 h-8 px-2"
+            disabled={!activeIsGlobal && !siteId}
+          >
+            <Plus className="h-4 w-4 mr-1" />Novo
+          </Button>
         </div>
 
         {blocks.length === 0 ? (
@@ -87,11 +116,13 @@ export function PromptManager({ siteId, siteDomain }: { siteId: string; siteDoma
   );
 }
 
-function CategoryButton({ cat, active, count, global: isGlobalCat, onClick }: { cat: PromptCategory; active: boolean; count: number; global?: boolean; onClick: () => void }) {
+function CategoryButton({ cat, active, count, global: isGlobalCat, disabled, onClick }: { cat: PromptCategory; active: boolean; count: number; global?: boolean; disabled?: boolean; onClick: () => void }) {
   return (
           <button
             onClick={onClick}
+            disabled={disabled}
             className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-between ${
+              disabled ? "opacity-40 cursor-not-allowed" :
               active
                 ? "bg-primary text-primary-foreground shadow-[var(--shadow-card)]"
                 : "hover:bg-secondary text-foreground"
