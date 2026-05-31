@@ -25,6 +25,8 @@ const CHECKS: { key: ChecklistKey; label: string; Logo: typeof GSCLogo }[] = [
 
 interface Props {
   site: SiteRecord;
+  selected?: boolean;
+  onSelect?: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onToggle: (key: ChecklistKey, value: boolean) => void;
@@ -37,7 +39,7 @@ function ssTone(ss: number | null) {
   return "text-foreground";
 }
 
-export function SiteCard({ site, onEdit, onDelete, onToggle }: Props) {
+export function SiteCard({ site, selected = false, onSelect, onEdit, onDelete, onToggle }: Props) {
   const copyEmail = (email: string) => {
     navigator.clipboard.writeText(email);
     toast.success("E-mail copiado", { description: email });
@@ -51,7 +53,19 @@ export function SiteCard({ site, onEdit, onDelete, onToggle }: Props) {
 
   return (
     <TooltipProvider delayDuration={150}>
-      <article className="group rounded-xl bg-card border border-border p-5 transition-all hover:border-primary/40 hover:shadow-[var(--shadow-hover)] shadow-[var(--shadow-card)]">
+      <article
+        onClick={(e) => {
+          // ignore clicks on interactive children
+          const tag = (e.target as HTMLElement).closest("a,button,input,label,[role='checkbox']");
+          if (tag) return;
+          onSelect?.();
+        }}
+        className={`group rounded-xl p-5 transition-all cursor-pointer shadow-[var(--shadow-card)] ${
+          selected
+            ? "bg-[oklch(0.96_0.06_150)] border-2 border-[oklch(0.65_0.18_150)] ring-2 ring-[oklch(0.65_0.18_150)]/30 shadow-[var(--shadow-hover)]"
+            : "bg-card border border-border hover:border-primary/40 hover:shadow-[var(--shadow-hover)]"
+        }`}
+      >
         <header className="flex items-start justify-between gap-3 mb-3">
           <div className="min-w-0 flex-1">
             <a
