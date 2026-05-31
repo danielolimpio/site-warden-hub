@@ -72,25 +72,27 @@ function Dashboard() {
   };
 
   return (
-    <div className={`min-h-screen bg-background transition-[padding] ${selected ? "lg:pl-[400px]" : ""}`}>
+    <div className="min-h-screen bg-background lg:pl-[400px]">
       <Toaster richColors position="bottom-right" />
 
-      {selected && (
-        <aside className="fixed inset-y-0 left-0 z-40 w-[400px] bg-card border-r border-border shadow-[var(--shadow-hover)] flex flex-col">
+      <aside className="fixed inset-y-0 left-0 z-40 w-[400px] bg-card border-r border-border shadow-[var(--shadow-hover)] flex flex-col">
           <div className="flex items-center justify-between gap-2 px-5 py-4 border-b border-border bg-secondary/40">
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Prompts do site</p>
-              <h2 className="text-sm font-semibold mt-0.5 truncate">{selected.domain}</h2>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Prompts</p>
+              <h2 className="text-sm font-semibold mt-0.5 truncate">
+                {selected ? selected.domain : "Genéricos · todos os sites"}
+              </h2>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setSelectedId(null)} className="shrink-0">
-              <X className="h-4 w-4 mr-1.5" />Fechar
-            </Button>
+            {selected && (
+              <Button variant="ghost" size="sm" onClick={() => setSelectedId(null)} className="shrink-0">
+                <X className="h-4 w-4 mr-1.5" />Limpar
+              </Button>
+            )}
           </div>
           <div className="flex-1 overflow-y-auto p-3">
-            <PromptManager siteId={selected.id} siteDomain={selected.domain} />
+            <PromptManager siteId={selected?.id ?? null} siteDomain={selected?.domain ?? null} />
           </div>
-        </aside>
-      )}
+      </aside>
 
       <header className="sticky top-0 z-30 backdrop-blur bg-background/85 border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-4">
